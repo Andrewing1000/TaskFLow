@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TaskFlow - Interfaz de Línea de Comandos</title>
+</head>
+<body>
+<script>
+// Simulación de datos de tareas almacenadas en un archivo JSON
+let tasks = [];
+
+// Función para agregar una nueva tarea
+function addTask(name, description, deadline) {
+    tasks.push({ name, description, deadline });
+    saveTasks();
+    console.log("Tarea agregada con éxito.");
+}
+
+// Función para modificar una tarea existente
+function modifyTask(index, newName, newDescription, newDeadline) {
+    if (index >= 0 && index < tasks.length) {
+        tasks[index] = { name: newName, description: newDescription, deadline: newDeadline };
+        saveTasks();
+        console.log("Tarea modificada con éxito.");
+    } else {
+        console.error("Índice de tarea no válido.");
+    }
+}
+
+// Función para eliminar una tarea existente
+function deleteTask(index) {
+    if (index >= 0 && index < tasks.length) {
+        tasks.splice(index, 1);
+        saveTasks();
+        console.log("Tarea eliminada con éxito.");
+    } else {
+        console.error("Índice de tarea no válido.");
+    }
+}
+
+// Función para mostrar todas las tareas
+function listTasks() {
+    console.log("Lista de Tareas:");
+    tasks.forEach((task, index) => {
+        console.log(`[${index + 1}] Nombre: ${task.name}, Descripción: ${task.description}, Fecha límite: ${task.deadline}`);
+    });
+}
+
+// Función para guardar las tareas en un archivo JSON
+function saveTasks() {
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+}
+
+// Función para cargar las tareas desde un archivo JSON
+function loadTasks() {
+    const storedTasks = localStorage.getItem("tasks");
+    if (storedTasks) {
+        tasks = JSON.parse(storedTasks);
+    }
+}
+
+// Carga las tareas al iniciar la aplicación
+loadTasks();
+
+// Pantalla de inicio
+console.log("¡Bienvenido a TaskFlow - Interfaz de Línea de Comandos!");
+console.log("Por favor, ingrese los siguientes comandos para comenzar:");
+console.log("- addTask('nombre', 'descripción', 'fecha límite'): Para agregar una nueva tarea.");
+console.log("- modifyTask(index, 'nuevoNombre', 'nuevaDescripción', 'nuevaFechaLímite'): Para modificar una tarea existente.");
+console.log("- deleteTask(index): Para eliminar una tarea existente.");
+console.log("- listTasks(): Para mostrar todas las tareas almacenadas.");
+
+</script>
+</body>
+</html>
