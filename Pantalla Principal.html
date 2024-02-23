@@ -5,6 +5,24 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TaskFlow - Interfaz de Línea de Comandos</title>
 <style>
+
+.matrix-input {
+    background-color: black;
+    color: green;
+    border: 1px solid green;
+    padding: 5px;
+    font-family: Consolas, monospace;
+    font-size: 24px;
+    width: 100px; /* Restar el padding y el borde */
+    height: 20px;
+    box-sizing: border-box; /* Incluir el padding y el borde en el tamaño total */
+    outline: none; /* Quitar el contorno predeterminado al enfocar */
+}
+
+.matrix-input:focus {
+    border-color: lime;
+}
+
     body {
         background-color: #000;
         color: #0f0;
@@ -97,6 +115,8 @@
         <input type="text" id="taskInput" placeholder="">
     </div>
 
+    <div id="notification" class="notification"></div>
+
     <div id="taskList">
         <!-- Aquí se mostrarán las tareas -->
     </div>
@@ -126,6 +146,15 @@ inputbar.addEventListener("keypress", function(event) {
                 if(selectedTask == null) return;
                 else deleteTask(selectedTask.cells[0].innerText)
             }
+            else if(taskText == "list"){
+                listTasks("");
+            }
+            else if(taskText == "list -pend"){
+                listTasks("Pendientes");
+            }
+            else if(taskText == "list -comp"){
+                listTasks("Completadas");
+            }
 
 
 
@@ -133,6 +162,12 @@ inputbar.addEventListener("keypress", function(event) {
         }
     }
 });
+
+
+function showNotification(message) {
+    const notificationElement = document.getElementById("notification");
+    notificationElement.textContent = message;
+}
 // Función para agregar una nueva tarea
 function addTask(name, description, deadline) {
     tasks.push({ name, description, deadline, completed: false });
@@ -169,6 +204,18 @@ function markTaskAsCompleted(index) {
     listTasks();
 }
 
+function markTaskAsNotCompleted(index) {
+    if (index >= 0 && index < tasks.length) {
+        tasks[index].completed = false;
+        saveTasks();
+        console.log("Tarea marcada como completada.");
+    } else {
+        console.error("Índice de tarea no válido.");
+    }
+
+    listTasks();
+}
+
 // Función para eliminar una tarea existente
 function deleteTask(index) {
     if (index >= 0 && index < tasks.length) {
@@ -188,15 +235,15 @@ function listTasks(tipo) {
 
     let filteredTasks
     if(tipo == "Completadas") {
-        console.log("Lista de Tareas Completadas:");
+        showNotification("Lista de Tareas Completadas:");
         filteredTasks = tasks.filter(task => task.completed);
     }
     else if(tipo == "Pendientes"){
-        console.log("Lista de Tareas Pendientes:");
+        showNotification("Lista de Tareas Pendientes:");
         filteredTasks = tasks.filter(task => !task.completed);
     }
     else{
-        console.log("Lista de Tareas:");
+        showNotification("Lista de Tareas:");
         filteredTasks = tasks
     }
 
@@ -251,13 +298,79 @@ function listTasks(tipo) {
             else selectedTask = row;
         });
 
-        Object.values(task).forEach(value => {
+        Object.values(task).forEach((value, ind) => {
             const cell = row.insertCell();
             cell.textContent = value;
+
+
+            cell.addEventListener("dblclick", function(event) {
+                event.preventDefault();
+                console.log("pepe");
+                const i = row.cells[0].innerText
+                makeEditable(cell, i, ind);
+            });
         });
+        const cell = row.insertCell();
+        cell.addEventListener("click", () => {
+            const i = row.cells[0].innerText
+
+            if(tasks[i].completed){
+                markTaskAsNotCompleted(i);
+                cell.style.backgroundColor = "transparent";
+            }
+            else{
+                markTaskAsCompleted(i);
+                cell.style.backgroundColor = "#00ff00 !important";
+            } 
+        })
+
+        
+
     });
 
     taskListElement.appendChild(table);
+}
+
+function makeEditable(celda, i, atribute) {
+    // Crear un elemento de input
+    const input = document.createElement("input");
+    // Establecer el valor del input al texto actual de la celda
+    input.value = celda.innerText;
+    input.classList.add("matrix-input");
+    // Reemplazar el contenido de la celda con el input
+    celda.innerHTML = "";
+    celda.appendChild(input);
+    // Enfocar el input para permitir la edición inmediata
+    input.focus();
+    
+    // Agregar un evento de pérdida de foco al input para finalizar la edición
+    input.addEventListener("blur", function() {
+        finishEditing(celda, input, i, atribute);
+    });
+
+    input.addEventListener("keypress", function(event) {
+        if (event.key === "Enter") finishEditing(celda, input, i, atribute);
+    });
+}
+
+function finishEditing(celda, input, index, atribute) {
+    // Obtener el nuevo valor del input
+    const newValue = input.value;
+
+    if(input.value == null || input.value == ""){
+        
+        if(atribute == '1') celda.innerHTML = tasks[index].name;
+        else if(atribute == '2') celda.innerHTML = tasks[index].description;
+        else if(atribute == '3') celda.innerHTML = tasks[index].deadline;
+   
+        return;
+    }
+    // Restaurar el contenido de la celda con el nuevo valor
+
+    if(atribute == '1') modifyTask(index, input.value, tasks[index].description, tasks[index].deadline)
+    else if(atribute == '2') modifyTask(index, tasks[index].name, input.value, tasks[index].deadline)
+    else if(atribute == '3') modifyTask(index, tasks[index].name, tasks[index].description, input.value)
+    
 }
 
 // Función para guardar las tareas en un archivo JSON
