@@ -302,7 +302,6 @@ function listTasks(tipo) {
             const cell = row.insertCell();
             cell.textContent = value;
 
-
             cell.addEventListener("dblclick", function(event) {
                 event.preventDefault();
                 console.log("pepe");
@@ -342,6 +341,11 @@ function makeEditable(celda, i, atribute) {
     celda.appendChild(input);
     // Enfocar el input para permitir la edición inmediata
     input.focus();
+
+    
+    if(atribute == 3){
+        input.st
+    }
     
     // Agregar un evento de pérdida de foco al input para finalizar la edición
     input.addEventListener("blur", function() {
