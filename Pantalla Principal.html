@@ -4,17 +4,142 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TaskFlow - Interfaz de Línea de Comandos</title>
+<style>
+    body {
+        background-color: #000;
+        color: #0f0;
+        font-family: Consolas, monospace;
+        margin: 0;
+        padding: 0;
+    }
+
+    a {
+        color: #0f0;
+        text-decoration: none;
+    }
+
+    a:hover {
+        color: #0a0;
+    }
+
+    button {
+        background-color: #000;
+        color: #0f0;
+        border: 1px solid #0f0;
+        padding: 8px 16px;
+        cursor: pointer;
+        transition: background-color 0.3s, color 0.3s;
+    }
+
+    button:hover {
+        background-color: #0a0;
+        color: #000;
+    }
+
+    #taskList table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+    #taskList th, #taskList td {
+        border: 1px solid #0f0;
+        padding: 8px;
+        text-align: left;
+    }
+    #taskList th {
+        background-color: #003300;
+    }
+
+    /* Estilo para marcar la fila cuando se hace clic */
+    .selected {
+        background-color: #004400;
+    }
+
+
+    .search-bar {
+    width: 100%;
+    background-color: black;
+    color: lime;
+    border-bottom: 1px solid lime;
+    padding: 16px;
+    font-family: Consolas, monospace;
+    font-size: 24px;
+    box-sizing: border-box;
+}
+.search-bar input[type="text"] {
+    width: 100%;
+    background-color: black;
+    color: lime;
+    border: none;
+    padding: 8px;
+    font-family: Consolas, monospace;
+    font-size: 24px;
+    box-sizing: border-box;
+}
+
+/* Estilos para el placeholder */
+.search-bar input[type="text"]::placeholder {
+    color: lime;
+    opacity: 0.6;
+}
+
+/* Estilos para cuando el input está enfocado */
+.search-bar input[type="text"]:focus {
+    outline: none;
+}
+</style>
+
+
 </head>
 <body>
+
+
+    <div class="search-bar">
+        <input type="text" id="taskInput" placeholder="">
+    </div>
+
+    <div id="taskList">
+        <!-- Aquí se mostrarán las tareas -->
+    </div>
+
+
+
 <script>
 // Simulación de datos de tareas almacenadas en un archivo JSON
 let tasks = [];
+var selectedTask;
 
+const inputbar = document.getElementById("taskInput")
+
+// Agregar un event listener para el evento keypress
+inputbar.addEventListener("keypress", function(event) {
+    // Verificar si se presionó la tecla Enter (código de tecla 13)
+    if (event.key === "Enter") {
+        // Ejecutar la función que manejará la acción al presionar Enter
+        const taskText = inputbar.value.trim();
+    
+        // Verificar si el input no está vacío
+        if (taskText !== "") {
+            // Aquí puedes realizar la acción deseada con el valor recuperado, como agregar una tarea, etc.
+            
+
+            if(taskText == "delete"){
+                if(selectedTask == null) return;
+                else deleteTask(selectedTask.cells[0].innerText)
+            }
+
+
+
+            taskInput.value = "";
+        }
+    }
+});
 // Función para agregar una nueva tarea
 function addTask(name, description, deadline) {
     tasks.push({ name, description, deadline, completed: false });
     saveTasks();
     console.log("Tarea agregada con éxito.");
+
+    listTasks();
 }
 
 // Función para modificar una tarea existente
@@ -26,7 +151,10 @@ function modifyTask(index, newName, newDescription, newDeadline) {
     } else {
         console.error("Índice de tarea no válido.");
     }
+
+    listTasks();
 }
+
 
 // Función para marcar una tarea como completada
 function markTaskAsCompleted(index) {
@@ -37,6 +165,8 @@ function markTaskAsCompleted(index) {
     } else {
         console.error("Índice de tarea no válido.");
     }
+
+    listTasks();
 }
 
 // Función para eliminar una tarea existente
@@ -48,6 +178,8 @@ function deleteTask(index) {
     } else {
         console.error("Índice de tarea no válido.");
     }
+
+    listTasks();
 }
 
 // Función para mostrar todas las tareas o las filtradas por estado
@@ -75,17 +207,58 @@ function listTasks(tipo) {
         completed: 'Completada'
     };
 
-    const tasksToDisplay = filteredTasks.map(task => {
+    const tasksToDisplay = filteredTasks.map((task, ind) => {
         const filteredTask = {};
+        filteredTask["id"] = ind; 
         Object.keys(columnNames).forEach(key => {
             filteredTask[columnNames[key]] = task[key];
         });
         return filteredTask;
     });
 
-    console.table(tasksToDisplay);
+    renderTasks(tasksToDisplay);
 
  }
+
+
+ function renderTasks(tasks1) {
+    const taskListElement = document.getElementById("taskList");
+    taskListElement.innerHTML = ""; // Limpiar el contenido previo
+
+    if (tasks.length === 0) {
+        taskListElement.innerHTML = "<p>No hay tareas disponibles.</p>";
+        return;
+    }
+
+    const table = document.createElement("table");
+    const headerRow = table.insertRow();
+    Object.keys(tasks1[0]).forEach(key => {
+        const headerCell = document.createElement("th");
+        headerCell.textContent = key.charAt(0).toUpperCase() + key.slice(1); // Capitalize first letter
+        headerRow.appendChild(headerCell);
+    });
+
+
+    tasks1.forEach(task => {
+        const row = table.insertRow();
+
+        row.addEventListener("click", () => {
+            // Al hacer clic en una fila, se marca o desmarca
+            row.classList.toggle("selected");
+            if(selectedTask == row){
+                selectedTask = null;
+            }
+            else selectedTask = row;
+        });
+
+        Object.values(task).forEach(value => {
+            const cell = row.insertCell();
+            cell.textContent = value;
+        });
+    });
+
+    taskListElement.appendChild(table);
+}
 
 // Función para guardar las tareas en un archivo JSON
 function saveTasks() {
