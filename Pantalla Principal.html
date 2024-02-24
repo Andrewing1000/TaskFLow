@@ -155,6 +155,19 @@ inputbar.addEventListener("keypress", function(event) {
             else if(taskText == "list -comp"){
                 listTasks("Completadas");
             }
+            else if(taskText == "add"){
+                const userInput = prompt("Ingrese el nombre de la tarea:");
+                if(userInput == null || userInput == "") return;
+
+
+                const desc = prompt("Ingrese la descripción de la tarea:");
+                if(desc == null || desc == "") return;
+
+                const date = prompt("Ingrese la fecha límite de la tarea:");
+                if(date == null || date == "") return;
+
+                addTask(userInput, desc, date);
+            }
 
 
 
@@ -302,12 +315,15 @@ function listTasks(tipo) {
             const cell = row.insertCell();
             cell.textContent = value;
 
-            cell.addEventListener("dblclick", function(event) {
+            if(ind != "4"){
+                cell.addEventListener("dblclick", function(event) {
                 event.preventDefault();
                 console.log("pepe");
                 const i = row.cells[0].innerText
                 makeEditable(cell, i, ind);
             });
+            }
+            
         });
         const cell = row.insertCell();
         cell.addEventListener("click", () => {
@@ -344,7 +360,8 @@ function makeEditable(celda, i, atribute) {
 
     
     if(atribute == 3){
-        input.st
+        input.type = "date"
+        input.style.width = '200px';
     }
     
     // Agregar un evento de pérdida de foco al input para finalizar la edición
